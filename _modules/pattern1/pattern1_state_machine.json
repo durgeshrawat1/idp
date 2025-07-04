@@ -1,0 +1,10 @@
+{
+  "Comment": "Pattern-1 Step Function State Machine definition placeholder.",
+  "StartAt": "ExampleState",
+  "States": {
+    "ExampleState": {
+      "Type": "Pass",
+      "End": true
+    }
+  }
+} 

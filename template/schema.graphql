@@ -1,0 +1,5 @@
+# schema.graphql
+
+type Query {
+  example: String
+} 
