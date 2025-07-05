@@ -152,11 +152,15 @@ Go to your GitLab project → **Settings → CI/CD → Variables** and add:
 | `CICD_GITLAB_RUNNER_IAM_ROLE` | `arn:aws:iam::YOUR-ACCOUNT-ID:role/YOUR-CICD-ROLE-NAME` | ✅ | ❌ | IAM role for CI/CD operations |
 | `KMS_KEY_ARN` | `arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/YOUR-KEY-ID` | ✅ | ❌ | Existing KMS key ARN |
 
-### **2. Update `env/common.tfvars`**
+### **2. Update Environment Configuration File**
 
-Replace the placeholder values with your actual infrastructure details:
+Update the environment configuration file with your actual infrastructure details:
 
+#### **Environment Configuration (`env/dev1_intelligence/lab.tfvars`):**
 ```hcl
+# Lab environment configuration for GenAI IDP Accelerator
+# This file contains all variables for both us-east-1 and us-east-2 regions
+
 # Common variables for both regions
 prefix = "YOUR-PROJECT-PREFIX"  # Change from "AWS1234-lab" to your prefix
 
@@ -185,6 +189,9 @@ useast2 = {
   selected_subnet_names = ["YOUR-SUBNET-1", "YOUR-SUBNET-2", "YOUR-SUBNET-3", "YOUR-SUBNET-4"]  # Must match existing subnet Name tags
 }
 ```
+
+> **Note:**
+> Use the correct branch folder (e.g., `env/dev1_intelligence/`) for your environment. If you are working on a different branch, create a corresponding folder and update the `lab.tfvars` file.
 
 ### **3. Create CI/CD IAM Role**
 
@@ -299,13 +306,18 @@ Replace the placeholder in `_modules/pattern1/pattern1_state_machine.json` with 
 # Test us-east-1
 cd useast1
 terraform init
-terraform plan -var-file=../env/common.tfvars
+terraform plan -var-file=../env/dev1_intelligence/lab.tfvars
 
 # Test us-east-2
 cd ../useast2
 terraform init
-terraform plan -var-file=../env/common.tfvars
+terraform plan -var-file=../env/dev1_intelligence/lab.tfvars
 ```
+
+#### **GitLab CI Testing**
+The GitLab CI pipeline uses the `TFVARS_PATH` environment variable to determine which tfvars file to use:
+- Default: `TFVARS_PATH=env/dev1_intelligence/lab.tfvars`
+- The same tfvars file is used for both regions since it contains all variables
 
 #### **GitLab CI Testing**
 1. Push your code to GitLab

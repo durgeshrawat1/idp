@@ -128,7 +128,13 @@ terraform_plan:
   before_script:
     <<: *terraform_before_script
   script:
-    - terraform plan -var-file=env/common.tfvars
+    - |
+      # Use environment variable for tfvars path
+      if [ -n "$TFVARS_PATH" ]; then
+        terraform plan -var-file="$TFVARS_PATH"
+      else
+        terraform plan -var-file=env/dev1_intelligence/lab.tfvars
+      fi
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -140,7 +146,13 @@ terraform_apply:
   before_script:
     <<: *terraform_before_script
   script:
-    - terraform apply -auto-approve -var-file=env/common.tfvars
+    - |
+      # Use environment variable for tfvars path
+      if [ -n "$TFVARS_PATH" ]; then
+        terraform apply -auto-approve -var-file="$TFVARS_PATH"
+      else
+        terraform apply -auto-approve -var-file=env/dev1_intelligence/lab.tfvars
+      fi
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH 
