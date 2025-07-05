@@ -1,10 +1,3 @@
-variable "enabled" { type = bool; default = true }
-variable "vpc_id" {}
-variable "subnet_id" {}
-variable "kms_key_arn" {}
-variable "prefix" {}
-variable "tags" { type = map(string) }
-
 resource "aws_s3_bucket" "input" {
   count  = var.enabled ? 1 : 0
   bucket = "${var.prefix}-textract-input"
@@ -43,41 +36,53 @@ locals {
   ]
 }
 
+# Create Lambda functions distributed across subnets
 resource "aws_lambda_function" "pattern1_lambdas" {
   count         = var.enabled ? length(local.lambda_functions) : 0
   function_name = "${var.prefix}-${local.lambda_functions[count.index]}"
-  s3_bucket     = "<lambda-artifacts-bucket>" # Replace with your artifact bucket
-  s3_key        = "${local.lambda_functions[count.index]}.zip"
+  filename      = "${path.root}/src/lambda/${local.lambda_functions[count.index]}.zip"
   handler       = "index.handler"
   runtime       = "python3.12"
-  role          = aws_iam_role.lambda_exec.arn
-  tags          = var.tags
+  role          = var.lambda_exec_role_arn
+  
+  # Distribute Lambda functions across subnets for high availability
+  vpc_config {
+    subnet_ids         = var.subnet_ids
+    security_group_ids = [aws_security_group.lambda[0].id]
+  }
+  
+  tags = var.tags
 }
 
-resource "aws_iam_role" "lambda_exec" {
-  name = "${var.prefix}-lambda-exec"
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
-EOF
+# Security group for Lambda functions
+resource "aws_security_group" "lambda" {
+  count       = var.enabled ? 1 : 0
+  name        = "${var.prefix}-lambda-sg"
+  description = "Security group for Lambda functions"
+  vpc_id      = var.vpc_id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = var.tags
+}
+
+# Subnet group for resources that support multiple subnets
+resource "aws_db_subnet_group" "main" {
+  count      = var.enabled ? 1 : 0
+  name       = "${var.prefix}-subnet-group"
+  subnet_ids = var.subnet_ids
+  tags       = var.tags
 }
 
 resource "aws_sfn_state_machine" "main" {
   count = var.enabled ? 1 : 0
   name  = "${var.prefix}-textract-state-machine"
-  role_arn = aws_iam_role.lambda_exec.arn
+  role_arn = var.lambda_exec_role_arn
   definition = file("${path.module}/pattern1_state_machine.json")
   tags  = var.tags
 }
