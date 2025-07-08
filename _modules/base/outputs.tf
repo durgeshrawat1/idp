@@ -23,6 +23,21 @@ output "appsync_api_id" {
   description = "AppSync GraphQL API ID."
 }
 
+output "appsync_lambda_datasource_id" {
+  value       = var.enable_appsync ? aws_appsync_datasource.lambda[0].id : null
+  description = "AppSync Lambda Data Source ID."
+}
+
+output "appsync_dynamodb_datasource_id" {
+  value       = var.enable_appsync ? aws_appsync_datasource.dynamodb[0].id : null
+  description = "AppSync DynamoDB Data Source ID."
+}
+
+// output "appsync_resolver_ids" {
+//   description = "IDs of AppSync resolvers."
+//   value       = var.enable_appsync ? aws_appsync_resolver.main[*].id : []
+// }
+
 output "tracking_table_name" {
   value = aws_dynamodb_table.tracking.name
   description = "DynamoDB tracking table name."

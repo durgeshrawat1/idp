@@ -18,6 +18,10 @@ output "logs_bucket" {
   value = var.enabled ? aws_s3_bucket.logs[0].id : null
 }
 
+output "lambda_artifacts_bucket" {
+  value = var.enabled ? aws_s3_bucket.lambda_artifacts[0].id : null
+}
+
 output "document_queue" {
   value = var.enabled ? aws_sqs_queue.document[0].id : null
 }

@@ -23,4 +23,10 @@ variable "enable_appsync" {
   type        = bool
   default     = true
   description = "Whether to create AppSync GraphQL API"
+}
+
+variable "enable_webui" {
+  type        = bool
+  default     = true
+  description = "Whether to build and deploy the Web UI"
 } 

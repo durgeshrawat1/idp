@@ -14,6 +14,7 @@ tags = {
 # Feature flags
 enable_cognito = true
 enable_appsync = true
+enable_webui = true
 
 # us-east-1 configuration
 useast1 = {

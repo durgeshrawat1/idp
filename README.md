@@ -93,10 +93,7 @@ genai/
 ### GitLab CI/CD Deployment
 
 The GitLab CI pipeline will automatically:
-1. Build Lambda functions
-2. Build and upload UI
-3. Deploy AppSync schema and resolvers
-4. Run Terraform validate, plan, and apply
+1. Run Terraform validate, plan, and apply (which handles Lambda function creation, AppSync schema/resolvers, Web UI build/upload, and all other infrastructure deployment)
 
 ## Resources Created
 
@@ -174,6 +171,7 @@ tags = {
 # Feature flags - Set these based on your needs
 enable_cognito = true   # Set to false if you don't need Cognito authentication
 enable_appsync = true   # Set to false if you don't need AppSync GraphQL API
+enable_webui = true     # Set to false if you don't need Web UI deployment
 
 # us-east-1 configuration - UPDATE THESE TO MATCH YOUR EXISTING INFRASTRUCTURE
 useast1 = {

@@ -16,13 +16,19 @@ resource "aws_s3_bucket" "logs" {
   tags   = var.tags
 }
 
+resource "aws_s3_bucket" "lambda_artifacts" {
+  count  = var.enabled ? 1 : 0
+  bucket = "${var.prefix}-lambda-artifacts"
+  tags   = var.tags
+}
+
 resource "aws_sqs_queue" "document" {
   count = var.enabled ? 1 : 0
   name  = "${var.prefix}-document-queue"
   tags  = var.tags
 }
 
-# Lambda function packaging and deployment is assumed to be handled by CI/CD
+# Lambda function definitions
 locals {
   lambda_functions = [
     "custom_resource_helper",
@@ -36,11 +42,33 @@ locals {
   ]
 }
 
+# Create Lambda function zip artifacts using Terraform
+data "archive_file" "lambda_zip" {
+  count       = var.enabled ? length(local.lambda_functions) : 0
+  type        = "zip"
+  source_dir  = "${path.root}/src/lambda/${local.lambda_functions[count.index]}"
+  output_path = "${path.root}/src/lambda/${local.lambda_functions[count.index]}.zip"
+  
+  depends_on = [aws_s3_bucket.lambda_artifacts]
+}
+
+# Upload Lambda artifacts to S3
+resource "aws_s3_object" "lambda_artifact" {
+  count  = var.enabled ? length(local.lambda_functions) : 0
+  bucket = aws_s3_bucket.lambda_artifacts[0].id
+  key    = "${local.lambda_functions[count.index]}.zip"
+  source = data.archive_file.lambda_zip[count.index].output_path
+  etag   = data.archive_file.lambda_zip[count.index].output_md5
+  
+  depends_on = [data.archive_file.lambda_zip]
+}
+
 # Create Lambda functions distributed across subnets
 resource "aws_lambda_function" "pattern1_lambdas" {
   count         = var.enabled ? length(local.lambda_functions) : 0
   function_name = "${var.prefix}-${local.lambda_functions[count.index]}"
-  filename      = "${path.root}/src/lambda/${local.lambda_functions[count.index]}.zip"
+  s3_bucket     = aws_s3_bucket.lambda_artifacts[0].id
+  s3_key        = aws_s3_object.lambda_artifact[count.index].key
   handler       = "index.handler"
   runtime       = "python3.12"
   role          = var.lambda_exec_role_arn
@@ -52,6 +80,8 @@ resource "aws_lambda_function" "pattern1_lambdas" {
   }
   
   tags = var.tags
+  
+  depends_on = [aws_s3_object.lambda_artifact]
 }
 
 # Security group for Lambda functions

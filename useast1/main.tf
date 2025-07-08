@@ -23,9 +23,13 @@ data "aws_caller_identity" "current" {}
 
 provider "aws" {
   region = "us-east-1"
+}
+
+# Assume CI/CD IAM role
+provider "aws" {
+  region = "us-east-1"
   alias  = "useast1"
   
-  # Assume CI/CD IAM role
   assume_role {
     role_arn = local.cicd_role_arn
   }
@@ -59,6 +63,7 @@ module "base" {
   kms_key_arn = local.kms_key_arn
   enable_cognito = var.enable_cognito
   enable_appsync = var.enable_appsync
+  enable_webui = var.enable_webui
 }
 
 # IAM roles and policies module

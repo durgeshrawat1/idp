@@ -1,5 +1,31 @@
 # schema.graphql
 
+type Document {
+  id: ID!
+  status: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  s3InputPath: String
+  s3OutputPath: String
+  errorMessage: String
+  data: String
+}
+
 type Query {
-  example: String
+  getDocument(id: ID!): Document
+  listDocuments: [Document]
+}
+
+type Mutation {
+  processDocument(s3InputPath: String!): Document
+}
+
+type Subscription {
+  documentStatus(id: ID!): Document
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
 } 

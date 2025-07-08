@@ -59,6 +59,7 @@ module "base" {
   kms_key_arn = local.kms_key_arn
   enable_cognito = var.enable_cognito
   enable_appsync = var.enable_appsync
+  enable_webui = var.enable_webui
 }
 
 # IAM roles and policies module

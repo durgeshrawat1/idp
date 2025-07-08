@@ -1,3 +1,3 @@
-# resolvers
+# AppSync Resolvers
 
-Place your AppSync resolver mapping templates (VTL or Lambda) here. 
+Place all required AppSync resolver mapping templates here, as referenced in your Terraform code. Copy from the official AWS GenAI IDP Accelerator repo if needed. 
